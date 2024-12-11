@@ -1,46 +1,39 @@
-#include <stdio.h>
-#include <stdbool.h>
-#include <time.h>
+#include <math.h>
 #include "../include/engine.h"
+#include "../include/math3d.h"
 
 int main() {
-  
     init_engine();
-    int ball_x = 5, ball_y = 5;
-    int velocity_x = 1, velocity_y = 1;
-    bool running = true;
-    const int target_fps = 60;
-    const double frame_time = 1.0 / target_fps;
 
-    clock_t last_time = clock();
+    Vec4 triangle[3] = {
+        vec4(0.0f, 1.0f, 0.0f, 1.0f),
+        vec4(-1.0f, -1.0f, 0.0f, 1.0f),
+        vec4(1.0f, -1.0f, 0.0f, 1.0f)
+    };
 
-    while (running) {
-        // Time management
-        clock_t now = clock();
-        double elapsed = (double)(now - last_time) / CLOCKS_PER_SEC;
+    Mat4 projection = mat4_perspective(M_PI / 4.0f, (float)SCREEN_WIDTH / SCREEN_HEIGHT, 0.1f, 100.0f);
+    Mat4 translation = mat4_translation(0.0f, 0.0f, -3.0f);
+  int running = 1;
+    while (running == 1) {
 
-        if (elapsed >= frame_time) {
-            last_time = now;
+        for (int i = 0; i < 3; i++) {
+            Vec4 vertex = mat4_mul_vec4(translation, triangle[i]);
+            vertex = mat4_mul_vec4(projection, vertex);
 
-            // Clear the framebuffer
-            clear_framebuffer();
-            // Move the ball
-            ball_x += velocity_x;
-            ball_y += velocity_y;
+            // Perspective divide (convert from homogeneous to 3D space)
+            vertex.x /= vertex.w;
+            vertex.y /= vertex.w;
 
-            // Bounce on edges
-            if (ball_x <= 0 || ball_x >= SCREEN_WIDTH - 1) velocity_x = -velocity_x;
-            if (ball_y <= 0 || ball_y >= SCREEN_HEIGHT - 1) velocity_y = -velocity_y;
-            // Draw the ball
-            draw_pixel(ball_x, ball_y, 'O');
-            // Render the frame
-            render_frame();
+            // Map to screen space
+            int screen_x = (int)((vertex.x + 1.0f) * 0.5f * SCREEN_WIDTH);
+            int screen_y = (int)((1.0f - (vertex.y + 1.0f) * 0.5f) * SCREEN_HEIGHT);
+
+            draw_pixel(screen_x, screen_y, 'e', vertex.z);
         }
+
+        render_frame();
     }
 
     shutdown_engine();
     return 0;
 }
-
-
-

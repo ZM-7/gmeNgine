@@ -7,7 +7,7 @@
 void init_engine();
 void shutdown_engine();
 void clear_framebuffer();
-void draw_pixel(int x, int y, char c);
+void draw_pixel(int x, int y, char , float depth);
 void render_frame();
 
 #endif
